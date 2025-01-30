@@ -1,8 +1,10 @@
 package com.koul.backend.service;
 
+import com.koul.backend.dto.SignUpUser;
 import com.koul.backend.entity.User;
 import com.koul.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,12 +14,13 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public User createUser(String username, String password, String email) {
+    public User createUser(SignUpUser signUpUser) {
         User user = new User();
-        user.setUsername(username);
-        user.setPassword(password);
-        user.setEmail(email);
+        user.setUsername(signUpUser.getUsername());
+        user.setPassword(passwordEncoder.encode(signUpUser.getPassword()));
+        user.setEmail(signUpUser.getEmail());
         return userRepository.save(user);
     }
 

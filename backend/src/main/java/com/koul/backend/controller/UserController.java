@@ -6,6 +6,8 @@ import com.koul.backend.jwt.JwtUtil;
 import com.koul.backend.service.CustomUserDetailsService;
 import com.koul.backend.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,10 +50,18 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestParam String username, @RequestParam String password) throws AuthenticationException {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+    public String login(@RequestParam String username, @RequestParam String password, HttpServletResponse response) throws AuthenticationException {
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        return jwtUtil.generateToken(userDetails.getUsername());
+
+        String token = jwtUtil.generateToken(userDetails.getUsername());
+        Cookie cookie = new Cookie("board-token", token);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(60*60);
+
+        response.addCookie(cookie);
+        return token;
     }
 
     @PostMapping("/token/validation")
